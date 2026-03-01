@@ -8,12 +8,12 @@ function App() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
 
-  // 🔹 fetch events from Render backend
+  // 🔹 fetch events from backend (ENV based)
   useEffect(() => {
-    fetch("https://sydney-event-platform-bj4c.onrender.com/events")
+    fetch(`${process.env.REACT_APP_API_URL}/events`)
       .then((res) => res.json())
       .then((data) => setEvents(data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Fetch error:", err));
   }, []);
 
   // GET TICKETS click
@@ -29,22 +29,19 @@ function App() {
     }
 
     try {
-      await fetch(
-        "https://sydney-event-platform-bj4c.onrender.com/leads",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            consent,
-            eventId: selectedEvent._id,
-          }),
-        }
-      );
+      await fetch(`${process.env.REACT_APP_API_URL}/leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          consent,
+          eventId: selectedEvent._id,
+        }),
+      });
 
       alert("Thank you! Redirecting to event page…");
 
-      // ✅ redirect to ORIGINAL EVENT URL
+      // ✅ redirect to original event URL
       window.location.href =
         selectedEvent.eventUrl || "https://www.eventbrite.com";
     } catch (err) {
@@ -52,7 +49,7 @@ function App() {
       console.error(err);
     }
 
-    // reset popup state
+    // reset popup
     setSelectedEvent(null);
     setEmail("");
     setConsent(false);
@@ -77,8 +74,7 @@ function App() {
           <h3>{event.title}</h3>
 
           <p>
-            <b>Date:</b>{" "}
-            {new Date(event.dateTime).toLocaleString()}
+            <b>Date:</b> {new Date(event.dateTime).toLocaleString()}
           </p>
 
           <p>
@@ -91,12 +87,13 @@ function App() {
 
           <br />
 
+          {/* ✅ Assignment Point B: GET TICKETS CTA */}
           <button
             onClick={() => handleGetTickets(event)}
             style={{
               marginTop: "10px",
               padding: "8px 14px",
-              backgroundColor: "#ff5a5f",
+              background: "#ff5a5f",
               color: "#fff",
               border: "none",
               borderRadius: "4px",
